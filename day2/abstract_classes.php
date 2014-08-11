@@ -74,28 +74,76 @@ class ShopProduct{
 		
 	}
 	
-	abstract class 
+
 }
 
+	// redefining of previously defined class
+	// this method cannot be instantiated
+	abstract class ShopProductWriter{
+		protected $product=array();
+		public function addProduct(ShopProduct $shopProduct){
+			$this->products[]=$shopProduct;
+		}
+		// abstract methods cannot have implementations
+		abstract public function write();
+		
+	}
+	// BUT
+	// 		class ErrorShopProductWriter extends ShopProductWriter{}
+	// causes
+	// Fatal error: Class ErrorShopProductWriter contains
+	// 1 abstract method and must therefore be declared abstract
+	// or implement the remaining methods (ShopProductWriter::write)
+	// therefore
+	// any class that EXTENDS an abstract class must implement
+	// ALL abstract methods, or be abstract itself
+	// not only that, but it must reproduce the method signature
+	// i.e. access control cannot be stricter in the implementing method
+	// the implementing method should also require the same # of args
+
+	// XML writer and string writer classes:
+	
+	class XmlProductWriter extends ShopProductWriter{
+		public function write(){
+			$writer=new XMLWriter();
+			$writer->openMemory();
+			$writer->startDocument('1,0','UTF-8');
+			$writer->startElement("products");
+			foreach ($this->products as $shopProduct){
+				$writer->startElement("product");
+				$writer->writeAttribute("title",$shopProduct->getTitle());
+				$writer->startElement("summary");
+				$writer->text($shopProduct->getSummary());
+				$writer->endElement(); // for summary
+				$writer->endElement(); // for product
+			}
+			$writer->endElement(); // for products
+			$writer->endDocument();
+			print $writer->flush(); // regurgitate the whole thing
+			}
+		}
+	
+	class TextProductWriter extends ShopProductWriter{
+		public function write(){
+			$output="PRODUCTS:\n";
+			foreach($this->products as $shopProduct){
+				$output .= $shopProduct->getSummary() . "\n";
+			}
+			print $output;
+		}
+	}
+	
+	
 class ToyProduct extends ShopProduct{
 	public $appropriateAges;
 	function __construct($title,$prodName,$price, $appropriateAges){
-		// when you invoke a constructor in a child class
-		// you become responsible for the parent constructor as well
 		parent::__construct($title, $prodName,$price); // puts these defaults into the parent constructor
 		$this->appropriateAges=$appropriateAges; // sets the child property
 		}
-		// child-specific getter function, not used
 	function getAppropriateAges(){
 		return $this->appropriateAges;
 	}
-		// overridden parent method
 	function getSummary(){
-		// instead of repeating stuff present in the
-		// parent method, we can invoke it
-		// so, instead of:
-		// $output="{$this->title} ({$this->prodName}), ages {$this->appropriateAges}";
-		// we can write:
 		$output=parent::getSummary();
 		$output.=", ages {$this->getAppropriateAges()}";
 		return $output;
@@ -109,91 +157,37 @@ class SketchBookProduct extends ShopProduct{
 		parent::__construct($title, $prodName, $price);
 		$this->numPages=$numPages;
 	}
-	// child-specific getter function, not used
 	function getNumPages(){
 		return $this->numPages;
 	}
-	// overridden parent method
 	function getSummary(){
-		// instead of repeating stuff present in the
-		// parent method, we can invoke it
-		// so, instead of:
-		// $output="{$this->title} ({$this->prodName}), total of {$this->numPages} pages";
-		// we can write:
 		$output=parent::getSummary();
 		$output.=", total of {$this->getNumPages()} pages";
 		return $output;
 	}
 }
 
-// might as well learn PDO now
-
-// the first argument is the DSN (pdo configuration),
-// then comes username, password (and options, if needed)
 $db = new PDO(
  'mysql:host=localhost;dbname=php-practice; charset=utf8',
  'root',
  'secret'
  );
 
- /*
- sqlite can be used instead:
- 
-$db = new PDO(
- 'sqlite:C:\Users\6715b\DB\products.db',
- null,
- null
- );
- 
- */
 
 // show errors
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-// the following can be extended to iterate for any ID,
-// but it's not what this assignment is about
+// instantiate objects for each Product
 $object1=ShopProduct::getInstance(1,$db);
 $object2=ShopProduct::getInstance(2,$db);
-// some ternary fun, check both objects
-$message=!is_null($object1) ? $object1->getSummary() . "<br/>" : "The object is null";
-$message.=!is_null($object2) ? $object2->getSummary() : "The object is null";
-print $message;
 
-// after all that magnificent code, the script returns:
-//
-// My first amazing PDO (Sunny Books Ltd.), total of 23 pages
-// Dinosaur trouble (Bandi), ages 4-11
+// initialize writer instance
+$writer=new XmlProductWriter();
+// add the objects to be written
+$writer->addProduct($object1); $writer->addProduct($object2);
+$writer->write();
 
-// this script implements a "factory" method, ShopProduct::getInstance
-// however, the design is incomplete and potentially problematic
-
-
-// NOTE:
-// this file pre-supposes the existence of:
-// "php-practice" mysql database
-// using
-/* CREATE TABLE products(
-		id INTEGER PRIMARY KEY AUTOINCREMENT;
-		type TEXT,
-		prodname TEXT,
-		title TEXT,
-		price float,
-		discount int,
-		numpages int,
-		appropriateages TEXT
-	)
-	
-* Here is a custom data set for this file:
-
- INSERT INTO `php-practice`.`products` (
- `id`, `type`, `prodname`, `title`, `price`, `discount`, `numpages`, `appropriateages`
- ) VALUES (
- '1', 'sketchbook', 'Sunny Books Ltd.', 'My first amazing PDO', '9001', '0', '23', NULL
- ), (
- '2', 'toy', 'Bandi', 'Dinosaur trouble', '8999.99', '1', NULL, '4-11'
- );	
-
-*/
+// outputs nicely formatted XML
 
  ?>
