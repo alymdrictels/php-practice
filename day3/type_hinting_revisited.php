@@ -37,6 +37,8 @@ class UseProducts{
 }
 
 // after all that boilerplate code, we print 16 words
+// again, interfaces are used to enforce data types
+// no primitives, only arrays, objects and classes
 
 $worker=new UseProducts();
 
