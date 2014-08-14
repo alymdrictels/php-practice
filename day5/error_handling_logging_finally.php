@@ -78,36 +78,42 @@ class Conf  {
 class Worker{
 	static function init(){
 		try{
-			$conf=new Conf(dirname(__FILE__)."/error_handling.xml");
-			print "user: {$conf->get('user')} \n";
-			print "host: {$conf->get('host')} \n";
+			// add new lines for logging functionality
+			$fh=fopen("./log.txt","a");
+			fputs($fh,"start\r\n"); // log the start
+			// use \r\n for windows carriage returns
+			$conf=new Conf(dirname(__FILE__)."/error_handlin.xml");
+			print "user: {$conf->get('user')} \r\n";
+			print "host: {$conf->get('host')} \r\n";
 			$conf->set("pass","secret");
 			$conf->write(); 
+			// fputs($fh,"end\r\n"); // log the end
+			// however, normally, this will not happen
+			// if an exception is encountered
+			// fclose($fh);
 			
 		} catch (FileException $e){
-			// permissions, file does not exist
+			fputs($fh,"file exception\r\n"); // log the exception
 		} catch (XmlException $e){
-			// xml parsing failed, broken?
 		} catch (ConfException $e){
-			// unexpected xml format
 		} catch (Exception $e){
-			// should not be called if all cases are caught properly
-			// useful in the case that new Exception types will be created later
-			// "throw $e;" inside the catch stmt can be used to
-			// further enhance reporting
-			//
-			// errors should be thrown IF there is not enough
-			// contextual information to handle it
+			// should never be called
+		} finally {
+		fputs($fh,"end\r\n"); // log the end
+		fclose($fh);
+		// a file exception will write the following into the log:
+		// 
+		// start
+		// file exception
+		// end
+		// 
+		// this block will NOT be called if die() or exit() is run
+		// in catch blocks
 		}
 		
 	}
 }
+Worker::init();
 
-// the "throw new Exception" exception object is forwarded into the
-// catch (Exception $variable) in the invoking scope
-
-// the Exception class can be extended:
-// to expand the class's functionality
-// to aid error handling by sub-classing
 
  ?>
