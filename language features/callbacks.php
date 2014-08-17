@@ -22,14 +22,14 @@ class ProcessSale{
 	function sale($product){
 		print "{$product->name}: processing \r\n";
 		foreach ($this->callbacks as $callback){
-			call_user_func($callback, $product);
+			print (call_user_func($callback, $product));
 		}
 	}
 }
 
 class Mailer{
 	function doMail($product){
-		print "   mailing ()";
+		return "   mailing ({$product->name})\r\n";
 	}
 }
 
@@ -38,20 +38,20 @@ class Mailer{
 
 // the book used create_function
 // and php.net does not reccommend it so I rewrote using this syntax
-$logger=function($product){print " logging ({$product->name})\r\n";};
+$logger=function($product){return "   logging ({$product->name})\r\n";};
 
 
 $ps=new ProcessSale(); 
-
-$ps->registerCallback($logger);
-// lambda function logger added to callback array
+print "<pre>";
+$ps->registerCallback($logger); // add normal callback
+$ps->registerCallback(array(new Mailer(),"doMail")); // add method callback
+// callback = array (new Class(), "methodname")
 
 $ps->sale(new Product("Shaving cream", "$30"));
 print "\r\n";
 $ps->sale(new Product("Panda repellent", "$20"));
 
 
-
-
+print "</pre>";
 
  ?>
