@@ -1,8 +1,8 @@
 <?php
-$to = "alymdrictels@gmail.com";
+$to = "my email address";
 $subject = "Hi!";
 $body="test".PHP_EOL;
-$body.="Hello World. Šaljem mail iz PHP filea".PHP_EOL;
+$body.="Hello World. Sending some mail from my PHP".PHP_EOL;
 
 
 $headers = "From: root@localhost.com";
