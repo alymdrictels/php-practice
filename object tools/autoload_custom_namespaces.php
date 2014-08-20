@@ -18,5 +18,5 @@ spl_autoload_register('myNamespaceAutoload');
 // there's an overhead to stacking autoloads
 
 $dino=new util\Dinosaur();
-$dino->rawr(); // prints "rawr!";
+$dino->rawr(); // prints: rawr!
 ?>
